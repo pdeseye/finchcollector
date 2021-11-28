@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<link 
+  href="https://cdn.jsdelivr.net/npm/mc-datepicker/dist/mc-calendar.min.css" 
+  rel="stylesheet" 
+/>
+<script 
+  src="https://cdn.jsdelivr.net/npm/mc-datepicker/dist/mc-calendar.min.js"
+>
+</script>
+<link 
+  rel="stylesheet" 
+  type="text/css" 
+  href="{% static 'css/finch-detail.css' %}"
+/>
+<script defer src="{% static 'js/finch-detail.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+<section class="finch-container">
+  <div class="finch-details">
+    <h2 class="card-title">{{ finch.name }}</h2>
+        <p>A {{ finch.color }}, {{ finch.sex }} finch</p>
+        <p><small>{{ finch.description }}</small></p>
+    </a>
+  </div>
+  <div class="finch-actions">
+    <a href="{% url 'finches_update' finch.id %}" class="btn warn">Edit</a>
+    <a href="{% url 'finches_delete' finch.id %}" class="btn danger">Delete</a>
+  </div>
+</section>
+
+<div class="feedings-toy-container">
+  <section class="feedings">
+    <div class="subsection-title">
+      <h2>Feedings</h2>
+    </div>
+    <div>
+    <h3>Add a Feeding</h3>
+    <form
+      action="{% url 'add_feeding' finch.id %}"
+      method="post" 
+      class="subsection-content"
+    >
+      {% if finch.fed_for_today %}
+        <p class="fed">{{finch.name}} has been fed a meal!</p>
+      {% else %}
+        <p class="unfed">{{finch.name}} might be hungry!</p>
+      {% endif %}
+      {% csrf_token %}
+      {{ feeding_form.as_p }}
+      <button type="submit" class="btn submit">Add Feeding</button>
+    </form>
+    <h3>Past Feedings</h3>
+    {% if finch.feeding_set.all.count %}
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Meal</th></tr>
+      </thead>
+      <tbody>
+        {% for feeding in finch.feeding_set.all %}
+          <tr>
+            <td>{{feeding.date}}</td>
+            <td>{{feeding.get_meal_display}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="subsection-content">{{finch.name}} has never been fed 😟</p>
+    {% endif %}
+  </section>
+
+  <section class="toys">
+    <div class="subsection-title">
+      <h2>Toys</h2>
+    </div>
+    <h3>{{ finch.name }}'s Toys</h3>
+    <div class="subsection-content">
+      {% if finch.toys.count %}
+        {% for toy in finch.toys.all %}
+          <div class="toy-container">
+            <div 
+              class="color-block"
+              style="background-color: {{ toy.color }}"
+            ></div>
+            <a href="{% url 'toys_detail' toy.id %}">
+              <p>A {{ toy.color }} {{ toy.name }}</p>
+            </a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="no-toys">{{finch.name}} doesn't have any toys 😞</p>
+      {% endif %}
+    </div>
+    <h3>Available Toys</h3>
+    <div class="subsection-content">
+      {% if toys.count %}
+        {% for toy in toys.all %}
+          <div class="toy-container">
+            <div 
+              class="color-block"
+              style="background-color: {{ toy.color }}"
+            ></div>
+            <a href="{% url 'toys_detail' toy.id %}">
+              <p>A {{ toy.color }} {{ toy.name }}</p>
+            </a>
+            <div class="card-action">
+              <form action="{% url 'assoc_toy' finch.id toy.id %}" method="post">
+                {% csrf_token %}
+              <button type="submit" class="btn">Give Toy</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="all-toys">
+          {{finch.name}} already has all the available toys 🥳
+        </p>
+      {% endif %}
+    </div>
+    </div>
+  </section>
+</div>
+</div>
+
+{% endblock %}
